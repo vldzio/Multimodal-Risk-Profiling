@@ -1,4 +1,5 @@
 OVERVIEW
+
 Predicting financial risk and pre-empting bankruptcy is a critical challenge for SMEs, with significant consequences for stakeholders and the broader economy. Traditional risk models often fail to capture nuanced patterns in financial data and overlook qualitative signals such as market sentiment. This project presents an end-to-end solution that combines:
 
 Machine learning models for structured financial data
@@ -8,6 +9,7 @@ Sentiment analysis of financial text using FinBERT (a transformer-based NLP mode
 Integration of both quantitative and qualitative data for robust risk profiling
 
 FEATURES
+
 Calculation of key financial risk metrics: Altman Z-score, Ohlson O-score, Zmijewski Score
 
 Handling of severe class imbalance using SMOTE and other resampling techniques
