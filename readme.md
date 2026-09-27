@@ -1,65 +1,57 @@
-# Multimodal Financial Risk Profiling
+# Financial Risk Profiling — tabular ML and financial-language experiments
 
-A hybrid machine learning system that predicts SME bankruptcy risk by combining quantitative financial metrics with qualitative sentiment analysis from financial texts. Addresses the limitations of traditional models by integrating both structured financial data and market sentiment signals.
+**An exploratory notebook investigating two complementary signals for company bankruptcy risk: financial statements and financial text.** The tabular track engineers balance-sheet ratios, builds classical risk-score features, and compares classification approaches under class imbalance. The language track explores FinBERT sentiment inference and includes a fine-tuning workflow using labeled financial sentences.
 
-## Overview
+The repository is a **research notebook**, not a deployed lending decision system. Its strength is the breadth of the investigation: financial-ratio engineering, baseline comparison, resampling strategies, and a transformer-based text track in one place.
 
-Traditional bankruptcy prediction models rely solely on financial ratios, missing critical qualitative signals. This project builds an end-to-end solution that:
-- Analyzes structured financial data using classical risk metrics (Altman Z-score, Ohlson O-score, Zmijewski Score)
-- Extracts sentiment from financial news and reports using **FinBERT** (transformer-based NLP)
-- Combines both data sources into a unified risk assessment model
+[Open the notebook in Google Colab](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb)
 
-## Key Features
+## What is in the notebook
 
-**Financial Risk Metrics**
-- Altman Z-score, Ohlson O-score, and Zmijewski Score calculation
-- Automated financial ratio computation and normalization
+### 1. Financial-risk features
 
-**Machine Learning Pipeline**
-- Handles severe class imbalance with **SMOTE** and resampling techniques
-- Multiple classifiers: Logistic Regression, Random Forest, XGBoost, SVM, KNN
-- Performance tuned for imbalanced data using Precision, Recall, F1-score, AUC-ROC
+- Reads `american_bankruptcy.csv` and selects the latest available record per company.
+- Renames statement fields and computes features based on working capital, retained earnings, EBIT, revenue, leverage, liquidity, and profitability.
+- Explores **Altman Z-score**, **Zmijewski-style**, and **Ohlson-style** risk indicators and combines their risk categories into a rule-based profile.
 
-**Sentiment Analysis**
-- Fine-tuned **FinBERT** model for financial domain text
-- Processes news articles, earnings reports, and market commentary
-- Extracts sentiment scores as features for risk prediction
+### 2. Classifier and imbalance experiments
 
-**Hybrid Model**
-- Fuses quantitative (financial ratios) and qualitative (sentiment) data
-- Improved prediction accuracy over single-modality approaches
-- Robust evaluation with confusion matrices and ROC curves
+- Prepares `alive` versus `failed` labels and explores random undersampling and SMOTE-based oversampling.
+- Includes comparison code for **Logistic Regression, Random Forest, XGBoost, SVM, and KNN**.
+- Calculates classification metrics including accuracy, precision, recall, F1, ROC-AUC, confusion matrices, and ROC curves.
 
-## Tech Stack
+### 3. Financial-text exploration
 
-- **Python** - Core implementation
-- **FinBERT** - Financial sentiment analysis (transformer-based)
-- **Scikit-learn** - ML classifiers and evaluation
-- **XGBoost** - Gradient boosting classifier
-- **SMOTE (imbalanced-learn)** - Class balancing
-- **Pandas/NumPy** - Data processing
-- **Matplotlib/Seaborn** - Visualizations
+- Loads the `yiyanghkust/finbert-tone` model for example financial-sentence sentiment inference.
+- Prepares labeled financial sentences from a separate `phrasebank_data.csv` file.
+- Contains Hugging Face `Trainer` configurations and training calls for experimenting with FinBERT fine-tuning, including an F1-oriented configuration.
 
-## Use Case
+These are **two research tracks in the current notebook**. It does not yet show a trained, evaluated model that fuses a company's financial ratios with matched text-derived sentiment features.
 
-Predicts bankruptcy risk for SMEs by analyzing:
-1. **Structured data**: Balance sheets, income statements, cash flow
-2. **Unstructured data**: Financial news, analyst reports, market sentiment
+## Reproducing the exploration
 
-The hybrid approach captures both financial health indicators and market perception, providing a more comprehensive risk profile.
+This repository contains `US_bankrupt.ipynb` and this README. The source CSVs and trained checkpoints are **not included**; you need compatible data you are authorized to use.
 
-## Performance Metrics
+1. Open the [notebook in Colab](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb), save a copy, and mount Google Drive when prompted.
+2. Provide the financial dataset as `american_bankruptcy.csv` (with the notebook's expected `company_name`, `year`, `status_label`, and `X1`–`X18` fields) and, for the NLP section, labeled financial sentences as `phrasebank_data.csv` (with `Sentence` and `Sentiment` fields).
+3. Update the notebook's absolute Drive paths for your environment. The current cells mix `/content/drive/MyDrive/...` and `/content/drive/My Drive/...`; make them consistent **before** running cells. The original workflow expects the finance file inside a `USBDT` folder and the text file inside `Phrasebank`.
+4. Install missing notebook libraries in Colab if needed (the notebook already contains some `pip install` cells):
 
-- Precision, Recall, F1-score for imbalanced classification
-- AUC-ROC curves for model comparison
-- Confusion matrices for error analysis
-- Feature importance rankings
+   ```python
+   %pip install scikit-learn imbalanced-learn xgboost pandas numpy matplotlib seaborn scipy transformers datasets accelerate evaluate torch
+   ```
 
-## Why This Matters
+5. Run and review the finance and NLP sections separately, adapting any dataset-specific labels or file paths. Google Colab or an environment with sufficient CPU/GPU memory is recommended for the fine-tuning cells.
 
-SME bankruptcies have significant economic impact. Early prediction enables:
-- Proactive risk management for lenders
-- Better investment decisions
-- Targeted interventions for struggling businesses
+## Evaluating responsibly
 
-This project demonstrates how combining traditional financial analysis with modern NLP techniques creates more robust risk assessment tools.
+The checked-in notebook contains **no saved execution outputs or benchmark table**, so this README does not invent an accuracy or claim an improvement over a baseline. Before citing results:
+
+- Split into training and held-out data **before** fitting scalers, computing any train-derived transforms, or applying SMOTE; the current SMOTE section scales and resamples before splitting, which can leak information into evaluation.
+- Report class support and failed-class precision/recall/F1 alongside ROC-AUC; overall accuracy alone can conceal performance on the minority class.
+- Keep the financial-ratio and text experiments separate until the data can be matched by company and time, a fusion method is implemented, and a fair baseline comparison is recorded.
+- Clearly identify the dataset's population and time period; a general company-bankruptcy dataset should not automatically be described as an SME-only dataset.
+
+## Next milestone
+
+A compelling next extension is a **reproducible, leakage-controlled benchmark** for tabular risk, followed by time-aligned text features and an explicit tabular-only versus tabular-plus-sentiment comparison. The existing notebook provides feature engineering, model families, imbalance experiments, and financial NLP groundwork for that step.
