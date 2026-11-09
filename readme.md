@@ -55,3 +55,15 @@ The checked-in notebook contains **no saved execution outputs or benchmark table
 ## Next milestone
 
 A compelling next extension is a **reproducible, leakage-controlled benchmark** for tabular risk, followed by time-aligned text features and an explicit tabular-only versus tabular-plus-sentiment comparison. The existing notebook provides feature engineering, model families, imbalance experiments, and financial NLP groundwork for that step.
+
+## Live demo
+
+An interactive demo lives in [`demo/`](demo) (static UI, deploys to Vercel) backed by [`demo_api/`](demo_api) (FastAPI, deploys as a Hugging Face Space together with a private [FreeLLMAPI](https://github.com/tashfeenahmed/freellmapi) gateway):
+
+| Feature | How it works |
+| --- | --- |
+| Altman Z · Zmijewski · Ohlson scores | The notebook's exact feature definitions and coefficients, as plain Python (`demo_api/risk_core.py`, unit-tested). Instant, deterministic, no LLM. |
+| AI analyst narrative | LLM output generated live from the computed numbers (schema-validated JSON). |
+| Sentence sentiment | LLM labels financial sentences positive / negative / neutral (the notebook's FinBERT track lives in Colab). |
+
+Every LLM call is traced to a LangSmith project (`risk-demo`). Visitors get a small daily allowance and can bring their own key. Deploy recipe: [`deploy/space/`](deploy/space) and [`vercel.json`](vercel.json) (set `DEMO_API_URL`). Run tests with `pip install -r demo_api/requirements.txt pytest && pytest tests`.
