@@ -19,7 +19,7 @@
 <body>
 <main>
   <h1>Financial Risk Profiling</h1>
-  <p class="lead">Enter a company's statement figures to compute the three bankruptcy-risk models from the notebook (Altman Z, Zmijewski, Ohlson). Scores are instant and deterministic; the analyst narrative and sentence sentiment are generated live by an LLM.</p>
+  <p class="lead">Enter a company's statement figures to compute the three bankruptcy-risk models from the notebook (Altman Z, Zmijewski, Ohlson). Scores are instant and deterministic; the analyst narrative is generated live by an LLM and sentence sentiment comes from FinBERT.</p>
 
   <section class="card">
     <h2 style="margin-top:0">1 · Financials <span class="muted" style="font-weight:400">(same currency units)</span></h2>
@@ -55,7 +55,7 @@
 
   <section class="card">
     <h2 style="margin-top:0">3 · Financial sentence sentiment</h2>
-    <p class="muted" style="margin-top:0">The notebook explores FinBERT on Financial-PhraseBank-style sentences. Here an LLM labels each sentence positive / negative / neutral. One sentence per line (max 8).</p>
+    <p class="muted" style="margin-top:0">The notebook explores FinBERT on Financial-PhraseBank-style sentences. Here the same FinBERT model (<code>yiyanghkust/finbert-tone</code>) labels each sentence positive / negative / neutral, with no LLM involved. One sentence per line (max 8).</p>
     <textarea id="sentences">The company reported a 15% rise in quarterly net profit.
 Management warned of significant liquidity pressure over the next twelve months.
 The board will hold its annual general meeting in May.</textarea>

@@ -10,15 +10,15 @@ Browser (Vercel, static `demo/`) -> Hugging Face Space `demo_api/` (limits, BYO 
 
 ## Layout
 - `demo_api/risk_core.py` - the notebook's feature definitions and coefficients as plain Python (cells 14-36: Altman 1.2/1.4/3.3/0.6/1.0 with zones 2.99/1.81; Zmijewski via normal CDF; Ohlson via sigmoid; `overall()` combiner). Deterministic, no LLM, free.
-- `demo_api/app.py` - `/score` (no LLM), `/explain` (LLM narrative from computed numbers), `/sentiment` (LLM positive/negative/neutral labels). Shared plumbing: `llm.py`, `base.py`, `guard.py`, `gateway.py`.
+- `demo_api/app.py` - `/score` (no LLM), `/explain` (LLM narrative from computed numbers), `/sentiment` (FinBERT via `finbert.py`, int8 ONNX, no LLM, costs no credits; build the bundle with `python scripts/export_finbert_onnx.py`, output `demo_api/model/` is gitignored; Dockerfile does it at build). Shared plumbing: `llm.py`, `base.py`, `guard.py`, `gateway.py`.
 - `demo/index.html` (+ `byo.js`, `base.css`, `config.js`, `write-config.mjs`) - static UI. `deploy/space/` - HF Space recipe.
 
 ## Run and test
-- `python -m venv .venv && .venv\Scripts\pip install -r demo_api/requirements.txt pytest && .venv\Scripts\pytest tests` (20 tests; LLM stubbed at `llm.chat_json`).
+- `python -m venv .venv && .venv\Scripts\pip install -r demo_api/requirements.txt pytest && .venv\Scripts\pytest tests` (24 tests; LLM stubbed at `llm.chat_json`; the real-model test skips if `demo_api/model/` is absent).
 - Local UI: set `API_URL` in `demo/config.js` to your local `uvicorn demo_api.app:app --port 8140`, serve `demo/` with `python -m http.server`. Restore `API_URL` to `""` before committing.
 
 ## Rules
-- Scoring maths must keep matching the notebook; change both or neither. Never hard-code LLM text. LLM seam: `demo_api/llm.py`.
+- Scoring maths must keep matching the notebook; change both or neither. Never hard-code LLM text. FinBERT label order is the checkpoint's own (0 neutral, 1 positive, 2 negative); the notebook's two zero-shot `sentiment_map` cells were corrected to match (the fine-tuning `label_map` is separate and self-consistent). LLM seam: `demo_api/llm.py`.
 - Client IP for limits = LAST `X-Forwarded-For` entry. Never log API keys. Example company figures in the UI are illustrative, not real firms.
 
 ## Deploy facts
@@ -27,4 +27,4 @@ Browser (Vercel, static `demo/`) -> Hugging Face Space `demo_api/` (limits, BYO 
 - Steps: `hf auth login`, `vercel login`, create the Space from `deploy/space/`, set secrets, then `vercel deploy --prod --yes --build-env DEMO_API_URL=<space url>` from the repo root.
 
 ## Status
-Verified: 20 tests pass; UI checked in a browser. NOT verified: Space Docker build, real provider calls, live deploy. The notebook itself was not modified; the dataset (`american_bankruptcy.csv`) is not in the repo.
+Verified: 24 tests pass; UI checked in a browser. NOT verified: Space Docker build, real provider calls, live deploy. The notebook was modified only to fix the two zero-shot FinBERT `sentiment_map` cells; the dataset (`american_bankruptcy.csv`) is not in the repo.

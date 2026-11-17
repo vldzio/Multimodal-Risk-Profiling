@@ -18,6 +18,14 @@ ARG CACHEBUST=1
 RUN git clone --depth 1 --branch "${REF}" "${REPO}" /srv/app \
  && python3 -m venv /opt/venv \
  && /opt/venv/bin/pip install --no-cache-dir -r /srv/app/demo_api/requirements.txt \
+ && /opt/venv/bin/python -c "import onnxruntime, tokenizers"
+# Build-time only: export the notebook's FinBERT (yiyanghkust/finbert-tone) to a ~110 MB int8 ONNX bundle,
+# then throw the heavy export toolchain (torch etc.) away so the runtime image stays small.
+RUN python3 -m venv /opt/export \
+ && /opt/export/bin/pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu \
+      torch transformers onnx onnxruntime onnxscript tokenizers "numpy<2.3" \
+ && /opt/export/bin/python /srv/app/scripts/export_finbert_onnx.py /srv/app/demo_api/model \
+ && rm -rf /opt/export /root/.cache \
  && chown -R node:node /srv/app
 
 COPY start.sh /srv/start.sh

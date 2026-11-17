@@ -64,6 +64,6 @@ An interactive demo lives in [`demo/`](demo) (static UI, deploys to Vercel) back
 | --- | --- |
 | Altman Z · Zmijewski · Ohlson scores | The notebook's exact feature definitions and coefficients, as plain Python (`demo_api/risk_core.py`, unit-tested). Instant, deterministic, no LLM. |
 | AI analyst narrative | LLM output generated live from the computed numbers (schema-validated JSON). |
-| Sentence sentiment | LLM labels financial sentences positive / negative / neutral (the notebook's FinBERT track lives in Colab). |
+| Sentence sentiment | The notebook's `yiyanghkust/finbert-tone`, int8-quantized ONNX on `onnxruntime` (no LLM, no quota). |
 
 Every LLM call is traced to a LangSmith project (`risk-demo`). Visitors get a small daily allowance and can bring their own key. Deploy recipe: [`deploy/space/`](deploy/space) and [`vercel.json`](vercel.json) (set `DEMO_API_URL`). Run tests with `pip install -r demo_api/requirements.txt pytest && pytest tests`.

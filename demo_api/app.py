@@ -2,7 +2,7 @@
 
 * POST /score      - deterministic Altman / Zmijewski / Ohlson scoring (the notebook's maths), free
 * POST /explain    - LLM analyst narrative grounded in the computed numbers
-* POST /sentiment  - LLM sentiment of financial sentences (FinBERT-style positive/negative/neutral)
+* POST /sentiment  - FinBERT (yiyanghkust/finbert-tone, as in the notebook) on onnxruntime; no LLM, free
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ os.environ.setdefault("LANGSMITH_PROJECT", "risk-demo")
 from fastapi import Request  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 
-from . import llm, risk_core  # noqa: E402
+from . import finbert, llm, risk_core  # noqa: E402
 from .base import create_app, guarded  # noqa: E402
 
 app = create_app("Financial Risk Profiling demo API")
@@ -30,27 +30,6 @@ EXPLAIN_SCHEMA = {
     },
     "required": ["headline", "drivers", "next_steps"],
 }
-
-SENTIMENT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "results": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "sentence": {"type": "string"},
-                    "label": {"enum": ["positive", "negative", "neutral"]},
-                    "confidence": {"type": "number"},
-                    "rationale": {"type": "string"},
-                },
-                "required": ["sentence", "label", "confidence"],
-            },
-        }
-    },
-    "required": ["results"],
-}
-
 
 async def _body(req: Request) -> dict:
     try:
@@ -103,11 +82,10 @@ async def sentiment(req: Request):
         return JSONResponse({"error": "Provide 1-8 sentences."}, status_code=400)
 
     def run():
-        system = (
-            "You label financial-news sentences like the Financial PhraseBank: positive, negative or neutral "
-            "from an investor's point of view. Judge only what the sentence says."
-        )
-        user = "Classify each sentence. Return JSON {\"results\": [...]} in the same order.\n" + json.dumps(sentences)
-        return llm.chat_json(system, user, schema=SENTIMENT_SCHEMA, metadata={"route": "sentiment"})
+        try:
+            return {"model": "yiyanghkust/finbert-tone", "results": finbert.classify(sentences)}
+        except finbert.SentimentUnavailable as exc:
+            raise llm.LLMUnavailable(str(exc)) from exc
 
-    return await guarded(req, 1, run, name="risk.sentiment")
+    # cost 0: deterministic local model, so it never touches the daily LLM credits
+    return await guarded(req, 0, run, name="risk.sentiment")
