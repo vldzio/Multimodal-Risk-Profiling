@@ -26,3 +26,9 @@ Source: <https://github.com/vldzio/Multimodal-Risk-Profiling>.
 | `CORS_ORIGINS` | the frontend origin, e.g. `https://risk-demo.vercel.app` |
 | `RL_PER_IP_DAILY` / `RL_GLOBAL_DAILY` | optional, default 20 / 1000 credits per UTC day |
 
+
+## Render (alternative host)
+
+`render.yaml` at the repo root deploys the same container on Render (free web service, Docker, `PORT=7860`).
+Dashboard → New → Blueprint → pick this repo/branch, then fill the secrets above (same names).
+The free tier sleeps after ~15 min idle (cold start ~1 min) and has 512 MB RAM; the gateway (~90 MB) plus the API with FinBERT (~200 MB) fit.

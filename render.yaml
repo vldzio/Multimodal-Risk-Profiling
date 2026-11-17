@@ -1,0 +1,32 @@
+# Render blueprint: private FreeLLMAPI gateway + demo API in one Docker container (same recipe as the HF Space).
+# Secrets are created empty (sync: false); fill them in the Render dashboard.
+services:
+  - type: web
+    name: risk-demo-api
+    runtime: docker
+    plan: free
+    branch: demo-ready
+    dockerfilePath: ./deploy/space/Dockerfile
+    dockerContext: ./deploy/space
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT                       # start.sh serves the API on 7860
+        value: "7860"
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: RL_PER_IP_DAILY
+        value: "20"
+      - key: RL_GLOBAL_DAILY
+        value: "300"
+      - key: ENCRYPTION_KEY             # 64 hex chars: openssl rand -hex 32
+        sync: false
+      - key: FREEAPI_CONFIG_JSON        # gateway admin + provider keys, see deploy/space/freellmapi.config.example.json
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: CORS_ORIGINS               # the Vercel origin once known
+        sync: false
