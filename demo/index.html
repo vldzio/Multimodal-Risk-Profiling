@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-app="risk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,15 +9,17 @@
 <style>
   .fields{display:grid;gap:0 12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
   .scores{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:8px}
-  .score{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--bg)}
-  .score b{font-size:1.5rem;display:block}.score small{color:var(--muted)}
-  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
-  table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+  .score{border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;background:var(--bg);display:grid;gap:6px;justify-items:start}
+  .score b{font:700 1.75rem/1.1 var(--mono);display:block;font-variant-numeric:tabular-nums}.score small{color:var(--muted);font:600 12px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.05em}
+  .row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:16px}
+  #narrative{margin-top:20px;padding-top:4px;border-top:1px solid var(--border)}
   ul.tight{margin:.3em 0;padding-left:1.2em}
 </style>
 </head>
 <body>
-<main>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+  <p class="eyebrow">Live demo · bankruptcy-risk models</p>
   <h1>Financial Risk Profiling</h1>
   <p class="lead">Enter a company's statement figures to compute the three bankruptcy-risk models from the notebook (Altman Z, Zmijewski, Ohlson). Scores are instant and deterministic; the analyst narrative is generated live by an LLM and sentence sentiment comes from FinBERT.</p>
 
@@ -56,16 +58,17 @@
   <section class="card">
     <h2 style="margin-top:0">3 · Financial sentence sentiment</h2>
     <p class="muted" style="margin-top:0">The notebook explores FinBERT on Financial-PhraseBank-style sentences. Here the same FinBERT model (<code>yiyanghkust/finbert-tone</code>) labels each sentence positive / negative / neutral, with no LLM involved. One sentence per line (max 8).</p>
-    <textarea id="sentences">The company reported a 15% rise in quarterly net profit.
+    <label for="sentences">Sentences (one per line)</label><textarea id="sentences">The company reported a 15% rise in quarterly net profit.
 Management warned of significant liquidity pressure over the next twelve months.
 The board will hold its annual general meeting in May.</textarea>
     <div class="row"><button id="sent-btn" type="button">Classify sentences</button><span id="sent-status" class="status" role="status"></span></div>
     <div id="sent-err" class="err" role="alert"></div>
-    <table id="sent-table" hidden><thead><tr><th>Sentence</th><th>Label</th><th>Confidence</th></tr></thead><tbody></tbody></table>
+    <div class="table-wrap"><table id="sent-table" hidden><thead><tr><th>Sentence</th><th>Label</th><th>Confidence</th></tr></thead><tbody></tbody></table></div>
   </section>
 
   <p class="muted">Research notebook: <a href="https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb">open in Colab</a>. This is an educational demo, not a lending decision system. Example figures are illustrative, not real companies.</p>
 </main>
+<footer class="site">Built by Hariharan · <a href="https://hariharan5862.vercel.app">More projects in the portfolio</a></footer>
 <script src="config.js"></script>
 <script src="byo.js"></script>
 <script>
@@ -117,7 +120,7 @@ $("explain-btn").addEventListener("click", () => run("explain-btn","status","err
   const n = r.narrative; $("narrative").hidden=false;
   $("n-headline").textContent = n.headline; $("n-drivers").innerHTML = li(n.drivers);
   $("n-dis").textContent = n.disagreements || ""; $("n-next").innerHTML = li(n.next_steps);
-}, "Asking the model (can take ~10 s)…"));
+}, "Asking a free model: usually 10-60 s, occasionally up to 2 min…"));
 $("sent-btn").addEventListener("click", () => run("sent-btn","sent-status","sent-err", async () => {
   const sentences = $("sentences").value.split("\n").map(s=>s.trim()).filter(Boolean);
   const r = await demoPost("/sentiment", {sentences});
