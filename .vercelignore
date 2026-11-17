@@ -1,0 +1,13 @@
+# Static UI only: everything except demo/ and vercel.json stays out of the upload
+.venv
+.git
+.pytest_cache
+demo_api
+deploy
+scripts
+tests
+render.yaml
+*.ipynb
+readme.md
+CLAUDE.md
+.env.local
