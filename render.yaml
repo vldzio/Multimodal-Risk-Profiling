@@ -14,6 +14,10 @@ services:
         value: "7860"
       - key: TRUST_CF_CONNECTING_IP     # Render fronts services with Cloudflare, which sets this header
         value: "true"
+      - key: LANGSMITH_ENDPOINT         # the LangSmith workspace is in the APAC region
+        value: https://apac.api.smith.langchain.com
+      - key: LANGSMITH_BASE_URL
+        value: https://apac.api.smith.langchain.com
       - key: LANGSMITH_TRACING
         value: "true"
       - key: RL_PER_IP_DAILY
