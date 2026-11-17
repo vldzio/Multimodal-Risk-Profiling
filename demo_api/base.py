@@ -49,6 +49,13 @@ def create_app(title: str, *, on_startup: Callable[[], None] | None = None) -> F
 
 
 def client_ip(req: Request) -> str:
+    # Behind Cloudflare (Render) the last X-Forwarded-For entry is a shared edge IP, so every visitor would
+    # share one limit. Cloudflare overwrites CF-Connecting-IP with the real client, so trust it - but only
+    # where the host is known to sit behind Cloudflare (TRUST_CF_CONNECTING_IP=true); elsewhere it is spoofable.
+    if os.environ.get("TRUST_CF_CONNECTING_IP", "").lower() == "true":
+        cf = req.headers.get("cf-connecting-ip")
+        if cf:
+            return cf.strip()
     # The platform proxy appends the real client IP as the LAST entry; earlier entries are client-supplied
     # and spoofable, so never use them for rate limiting.
     fwd = req.headers.get("x-forwarded-for")

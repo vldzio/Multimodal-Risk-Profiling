@@ -12,6 +12,8 @@ services:
     envVars:
       - key: PORT                       # start.sh serves the API on 7860
         value: "7860"
+      - key: TRUST_CF_CONNECTING_IP     # Render fronts services with Cloudflare, which sets this header
+        value: "true"
       - key: LANGSMITH_TRACING
         value: "true"
       - key: RL_PER_IP_DAILY

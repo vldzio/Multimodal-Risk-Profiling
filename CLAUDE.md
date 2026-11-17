@@ -19,7 +19,7 @@ Browser (Vercel, static `demo/`) -> Hugging Face Space `demo_api/` (limits, BYO 
 
 ## Rules
 - Scoring maths must keep matching the notebook; change both or neither. Never hard-code LLM text. FinBERT label order is the checkpoint's own (0 neutral, 1 positive, 2 negative); the notebook's two zero-shot `sentiment_map` cells were corrected to match (the fine-tuning `label_map` is separate and self-consistent). LLM seam: `demo_api/llm.py`.
-- Client IP for limits = LAST `X-Forwarded-For` entry. Never log API keys. Example company figures in the UI are illustrative, not real firms.
+- Client IP for limits = LAST `X-Forwarded-For` entry, except `CF-Connecting-IP` when `TRUST_CF_CONNECTING_IP=true` (Render, behind Cloudflare only). Never log API keys. Example company figures in the UI are illustrative, not real firms.
 
 ## Deploy facts
 - Space `risk-demo-api`, LangSmith project `risk-demo`, Vercel dir `demo/` (static, `vercel.json` build runs `node demo/write-config.mjs`), env var `DEMO_API_URL`.

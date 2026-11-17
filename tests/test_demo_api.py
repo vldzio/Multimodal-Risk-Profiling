@@ -122,3 +122,16 @@ def test_byo_with_disallowed_host_rejected(client):
 
 def test_sentiment_requires_sentences(client):
     assert client.post("/sentiment", json={"sentences": []}).status_code == 400
+
+
+def test_client_ip_prefers_cloudflare_header_only_when_trusted(monkeypatch):
+    from demo_api import base
+
+    class R:
+        client = type("C", (), {"host": "10.0.0.1"})()
+        headers = {"x-forwarded-for": "6.6.6.6, 172.70.1.1", "cf-connecting-ip": "203.0.113.9"}
+
+    monkeypatch.delenv("TRUST_CF_CONNECTING_IP", raising=False)
+    assert base.client_ip(R()) == "172.70.1.1"  # last XFF entry; CF header ignored (spoofable off-Cloudflare)
+    monkeypatch.setenv("TRUST_CF_CONNECTING_IP", "true")
+    assert base.client_ip(R()) == "203.0.113.9"
