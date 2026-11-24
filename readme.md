@@ -2,7 +2,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb)
 
-Predicting company bankruptcy risk from two complementary signals: **financial statements** and **financial language**. The tabular track engineers balance-sheet ratios, computes the classic Altman, Zmijewski and Ohlson risk scores, and benchmarks five classifiers under class imbalance. The language track runs FinBERT sentiment inference and fine-tunes FinBERT on labeled financial sentences.
+Predicting company bankruptcy risk from two complementary signals: **financial statements** and **financial language**. The tabular track engineers balance-sheet ratios, computes the classic Altman, Zmijewski and Ohlson risk scores, and benchmarks five classifiers under class imbalance. The language track runs FinBERT sentiment inference and fine-tunes FinBERT on labeled financial sentences. The two tracks are explored independently — they are not combined into one trained model; fusing them is future work (see [Roadmap](#roadmap)).
 
 The research lives in a single Colab notebook, [`US_bankrupt.ipynb`](US_bankrupt.ipynb). The **RiskLens** web demo puts the scoring models and FinBERT in front of anyone with a browser.
 
