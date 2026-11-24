@@ -4,7 +4,9 @@
 
 Predicting company bankruptcy risk from two complementary signals: **financial statements** and **financial language**. The tabular track engineers balance-sheet ratios, computes the classic Altman, Zmijewski and Ohlson risk scores, and benchmarks five classifiers under class imbalance. The language track runs FinBERT sentiment inference and fine-tunes FinBERT on labeled financial sentences.
 
-Everything lives in a single Colab notebook: [`US_bankrupt.ipynb`](US_bankrupt.ipynb).
+The research lives in a single Colab notebook, [`US_bankrupt.ipynb`](US_bankrupt.ipynb). The **RiskLens** web demo puts the scoring models and FinBERT in front of anyone with a browser.
+
+**Live demo:** [risk-profiling-demo.vercel.app](https://risk-profiling-demo.vercel.app)
 
 ## What's in the notebook
 
@@ -19,7 +21,7 @@ Everything lives in a single Colab notebook: [`US_bankrupt.ipynb`](US_bankrupt.i
 - One stratified train/test split; the scaler is fit on the training data, and the held-out test set keeps the real class balance.
 - Two training-set balancing strategies: **random undersampling** and **SMOTE oversampling**.
 - Five models trained under each strategy: **Logistic Regression, Random Forest, XGBoost, SVM and KNN**.
-- Every model reports failed-class precision, recall and F1, a per-class report with support, ROC-AUC, a confusion matrix and a ROC curve.
+- Every model reports failed-class precision, recall, F1 and PR-AUC, a per-class report with support, ROC-AUC, a confusion matrix and a ROC curve.
 
 ### 3. FinBERT sentiment and fine-tuning
 
@@ -56,9 +58,30 @@ The notebook writes intermediate files (`preprocessed_df.csv` and the resampled 
 
 4. Run the cells top to bottom. The financial and FinBERT sections are independent and can be run separately; a GPU runtime is recommended for fine-tuning.
 
+## RiskLens web demo
+
+A static UI in [`demo/`](demo) (Vercel) backed by a FastAPI service in [`demo_api/`](demo_api) (Render):
+
+| Feature | How it works |
+| --- | --- |
+| Altman Z, Zmijewski and Ohlson scores | The notebook's feature definitions and coefficients as plain Python (`demo_api/risk_core.py`, unit-tested). Instant and deterministic. |
+| Sentence sentiment | The notebook's `yiyanghkust/finbert-tone`, int8-quantized ONNX on `onnxruntime`. |
+| Analyst narrative | An LLM explains the computed scores in plain language (schema-validated JSON, traced in LangSmith). |
+
+Run it locally:
+
+```bash
+pip install -r demo_api/requirements.txt pytest
+python scripts/export_finbert_onnx.py          # builds demo_api/model/ for the sentiment endpoint
+pytest tests
+uvicorn demo_api.app:app --port 8140
+```
+
+Set `API_URL` in `demo/config.js` to `http://localhost:8140` and serve `demo/` with `python -m http.server`. Deployment recipes: `render.yaml`, `deploy/space/` and `vercel.json`.
+
 ## Tech stack
 
-Python · pandas · NumPy · scikit-learn · imbalanced-learn · XGBoost · SciPy · Matplotlib · seaborn · PyTorch · Hugging Face Transformers / Datasets / Evaluate
+Python · pandas · NumPy · scikit-learn · imbalanced-learn · XGBoost · SciPy · Matplotlib · seaborn · PyTorch · Hugging Face Transformers / Datasets / Evaluate · FastAPI · ONNX Runtime
 
 ## Roadmap
 
