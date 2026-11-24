@@ -1,57 +1,65 @@
-# Financial Risk Profiling — tabular ML and financial-language experiments
+# Multimodal Risk Profiling — Company Bankruptcy Prediction
 
-**An exploratory notebook investigating two complementary signals for company bankruptcy risk: financial statements and financial text.** The tabular track engineers balance-sheet ratios, builds classical risk-score features, and compares classification approaches under class imbalance. The language track explores FinBERT sentiment inference and includes a fine-tuning workflow using labeled financial sentences.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb)
 
-The repository is a **research notebook**, not a deployed lending decision system. Its strength is the breadth of the investigation: financial-ratio engineering, baseline comparison, resampling strategies, and a transformer-based text track in one place.
+Predicting company bankruptcy risk from two complementary signals: **financial statements** and **financial language**. The tabular track engineers balance-sheet ratios, computes the classic Altman, Zmijewski and Ohlson risk scores, and benchmarks five classifiers under class imbalance. The language track runs FinBERT sentiment inference and fine-tunes FinBERT on labeled financial sentences.
 
-[Open the notebook in Google Colab](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb)
+Everything lives in a single Colab notebook: [`US_bankrupt.ipynb`](US_bankrupt.ipynb).
 
-## What is in the notebook
+## What's in the notebook
 
-### 1. Financial-risk features
+### 1. Financial-ratio features and classic risk scores
 
-- Reads `american_bankruptcy.csv` and selects the latest available record per company.
-- Renames statement fields and computes features based on working capital, retained earnings, EBIT, revenue, leverage, liquidity, and profitability.
-- Explores **Altman Z-score**, **Zmijewski-style**, and **Ohlson-style** risk indicators and combines their risk categories into a rule-based profile.
+- Loads `american_bankruptcy.csv`, keeps the most recent filing per company, and maps the raw `X1`–`X18` fields to readable statement names.
+- Engineers ratios: working capital / total assets, retained earnings / total assets, EBIT / total assets, market value / total liabilities, sales / total assets, ROA, leverage, current ratio, log total assets and a negative-net-income flag.
+- Computes the **Altman Z-score** (Safe / Gray / Distress zones), the **Zmijewski score** (probit probability) and the **Ohlson O-score** (logistic probability), then combines them into a rule-based overall risk profile.
 
-### 2. Classifier and imbalance experiments
+### 2. Classifier comparison with imbalance handling
 
-- Prepares `alive` versus `failed` labels and explores random undersampling and SMOTE-based oversampling.
-- Includes comparison code for **Logistic Regression, Random Forest, XGBoost, SVM, and KNN**.
-- Calculates classification metrics including accuracy, precision, recall, F1, ROC-AUC, confusion matrices, and ROC curves.
+- One stratified train/test split; the scaler is fit on the training data, and the held-out test set keeps the real class balance.
+- Two training-set balancing strategies: **random undersampling** and **SMOTE oversampling**.
+- Five models trained under each strategy: **Logistic Regression, Random Forest, XGBoost, SVM and KNN**.
+- Every model reports failed-class precision, recall and F1, a per-class report with support, ROC-AUC, a confusion matrix and a ROC curve.
 
-### 3. Financial-text exploration
+### 3. FinBERT sentiment and fine-tuning
 
-- Loads the `yiyanghkust/finbert-tone` model for example financial-sentence sentiment inference.
-- Prepares labeled financial sentences from a separate `phrasebank_data.csv` file.
-- Contains Hugging Face `Trainer` configurations and training calls for experimenting with FinBERT fine-tuning, including an F1-oriented configuration.
+- Sentiment inference with [`yiyanghkust/finbert-tone`](https://huggingface.co/yiyanghkust/finbert-tone), for single sentences and batches.
+- Cleans and labels the Financial PhraseBank sentences, aligned with the model's own label mapping.
+- Fine-tunes FinBERT with the Hugging Face `Trainer`, including early stopping and a weighted-F1 evaluation metric.
 
-These are **two research tracks in the current notebook**. It does not yet show a trained, evaluated model that fuses a company's financial ratios with matched text-derived sentiment features.
+## Data
 
-## Reproducing the exploration
+Place both files in Google Drive under `DATA_DIR` (default `/content/drive/MyDrive`):
 
-This repository contains `US_bankrupt.ipynb` and this README. The source CSVs and trained checkpoints are **not included**; you need compatible data you are authorized to use.
+```
+DATA_DIR/
+├── USBDT/american_bankruptcy.csv
+└── Phrasebank/phrasebank_data.csv
+```
 
-1. Open the [notebook in Colab](https://colab.research.google.com/github/vldzio/Multimodal-Risk-Profiling/blob/main/US_bankrupt.ipynb), save a copy, and mount Google Drive when prompted.
-2. Provide the financial dataset as `american_bankruptcy.csv` (with the notebook's expected `company_name`, `year`, `status_label`, and `X1`–`X18` fields) and, for the NLP section, labeled financial sentences as `phrasebank_data.csv` (with `Sentence` and `Sentiment` fields).
-3. Update the notebook's absolute Drive paths for your environment. The current cells mix `/content/drive/MyDrive/...` and `/content/drive/My Drive/...`; make them consistent **before** running cells. The original workflow expects the finance file inside a `USBDT` folder and the text file inside `Phrasebank`.
-4. Install missing notebook libraries in Colab if needed (the notebook already contains some `pip install` cells):
+| File | Fields |
+| --- | --- |
+| `american_bankruptcy.csv` | `company_name`, `status_label` (`alive` / `failed`), `year`, `X1`–`X18` (current assets, COGS, D&A, EBITDA, inventory, net income, receivables, market value, net sales, total assets, long-term debt, EBIT, gross profit, current liabilities, retained earnings, revenue, total liabilities, operating expenses) |
+| `phrasebank_data.csv` | `Sentence`, `Sentiment` (`positive` / `neutral` / `negative`) |
+
+The notebook writes intermediate files (`preprocessed_df.csv` and the resampled training sets) back to `DATA_DIR/USBDT/`.
+
+## How to run
+
+1. Click the **Open in Colab** badge above and save a copy to your Drive.
+2. Run the first cell to mount Google Drive. If your data lives elsewhere, change `DATA_DIR` in that cell — every path in the notebook is built from it.
+3. Install the dependencies (the notebook also includes the install cells it needs):
 
    ```python
    %pip install scikit-learn imbalanced-learn xgboost pandas numpy matplotlib seaborn scipy transformers datasets accelerate evaluate torch
    ```
 
-5. Run and review the finance and NLP sections separately, adapting any dataset-specific labels or file paths. Google Colab or an environment with sufficient CPU/GPU memory is recommended for the fine-tuning cells.
+4. Run the cells top to bottom. The financial and FinBERT sections are independent and can be run separately; a GPU runtime is recommended for fine-tuning.
 
-## Evaluating responsibly
+## Tech stack
 
-The checked-in notebook contains **no saved execution outputs or benchmark table**, so this README does not invent an accuracy or claim an improvement over a baseline. Before citing results:
+Python · pandas · NumPy · scikit-learn · imbalanced-learn · XGBoost · SciPy · Matplotlib · seaborn · PyTorch · Hugging Face Transformers / Datasets / Evaluate
 
-- Split into training and held-out data **before** fitting scalers, computing any train-derived transforms, or applying SMOTE; the current SMOTE section scales and resamples before splitting, which can leak information into evaluation.
-- Report class support and failed-class precision/recall/F1 alongside ROC-AUC; overall accuracy alone can conceal performance on the minority class.
-- Keep the financial-ratio and text experiments separate until the data can be matched by company and time, a fusion method is implemented, and a fair baseline comparison is recorded.
-- Clearly identify the dataset's population and time period; a general company-bankruptcy dataset should not automatically be described as an SME-only dataset.
+## Roadmap
 
-## Next milestone
-
-A compelling next extension is a **reproducible, leakage-controlled benchmark** for tabular risk, followed by time-aligned text features and an explicit tabular-only versus tabular-plus-sentiment comparison. The existing notebook provides feature engineering, model families, imbalance experiments, and financial NLP groundwork for that step.
+Fuse the two signals: match FinBERT sentiment from company filings and news to each firm's financial ratios by company and year, and train a joint tabular-plus-text risk model.
